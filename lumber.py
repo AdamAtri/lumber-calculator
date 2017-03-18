@@ -1,5 +1,8 @@
 #! /bin/python
 
+class TooBig(Exception):
+    pass
+
 msg = \
     """
         ###########################################################################
@@ -88,11 +91,16 @@ board_length = input('\nenter the max board length (ft): ')
 board_inches = int(board_length) * 12
 total_cuts = [ ]
 in_length = raw_input('enter the first cut length: ')
-while float(in_length) > 0:
-    total_cuts.append(float(in_length))
+while in_length:
+    if in_length == "" or in_length == "q": break
     try:
+        value = float(in_length)
+        if value > board_inches:
+            raise TooBig('That one (%d) won\'t fit on a %s foot board' % value)
+        total_cuts.append(value)
         in_length = raw_input('next: ')
-        if in_length == "" or in_length == "q": break
+    except TooBig, e:
+        print e.message
     except:
         break
 
