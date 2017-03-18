@@ -1,5 +1,7 @@
 #! /bin/python
 
+import re
+
 class TooBig(Exception):
     pass
 
@@ -94,13 +96,23 @@ in_length = raw_input('enter the first cut length: ')
 while in_length:
     if in_length == "" or in_length == "q": break
     try:
+        times = 1
+        rx = re.compile(r"([\w.]+)[\s\*,]+(\w+)")
+        if rx.search(in_length):
+            in_length, raw_times = rx.search(in_length).groups()
+            times = int(raw_times)
         value = float(in_length)
         if value > board_inches:
-            raise TooBig('That one (%d) won\'t fit on a %s foot board' % value)
-        total_cuts.append(value)
+            message = 'That one (%d) won\'t fit on a %s foot board' % (value, board_length)
+            raise TooBig(message)
+        total_cuts = total_cuts + ([value] * times)
         in_length = raw_input('next: ')
     except TooBig, e:
         print e.message
+        in_length = raw_input('next: ')
+    except ValueError, e:
+        print e.message
+        in_length = raw_input('next: ')
     except:
         break
 
@@ -115,7 +127,10 @@ cuts = [in_order_boards, biggest_first_boards, smallest_first_boards]
 cuts = sorted(cuts, lambda x, y: cmp(len(x), len(y)))
 least_boards = cuts[0]
 for i in range(len(least_boards)):
-    least_boards[i] = sorted(least_boards[i], reverse=True)
+    board = least_boards[i]
+    remainder = board.pop()
+    board = sorted(board, reverse=True) + [ remainder ]
+    least_boards[i] = board
 
 print "you can do that in %d boards like this: %s" % (len(least_boards), least_boards)
 
